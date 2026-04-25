@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "golang.go",
+    "liuchao.go-struct-tag",
+    "casualjim.gotemplate",
+    "oderwat.indent-rainbow",
+    "gruntfuggly.todo-tree"
+  ]
+}

@@ -1,0 +1,82 @@
+package app
+
+import (
+	"context"
+	"errors"
+
+	"{{.Module}}/pkg/log"
+)
+
+type App struct {
+	log     log.Logger
+	name    string
+	version string
+	build   string
+}
+
+type Option func(*App) error
+
+func WithAppName(name string) Option {
+	return func(a *App) error {
+		if name == "" {
+			return errors.New("app name cannot be empty")
+		}
+		a.name = name
+		return nil
+	}
+}
+
+func WithVersion(version, build string) Option {
+	return func(a *App) error {
+		if version == "" {
+			return errors.New("version cannot be empty")
+		}
+		if build == "" {
+			return errors.New("build cannot be empty")
+		}
+		a.version = version
+		a.build = build
+		return nil
+	}
+}
+
+
+func WithLogger(logger log.Logger) Option {
+	return func(a *App) error {
+		if logger == nil {
+			return errors.New("logger cannot be nil")
+		}
+		a.log = logger
+		return nil
+	}
+}
+
+func New(opts ...Option) (*App, error) {
+	app := new(App)
+
+	for _, opt := range opts {
+		if err := opt(app); err != nil {
+			return nil, err
+		}
+	}
+
+	return app, nil
+}
+
+func (app *App) Start(ctx context.Context) error {
+	app.log.With(map[string]any{
+		"version":   app.version,
+		"build":     app.build,
+	}).Info("Application started")
+
+	select {
+	case <-ctx.Done():
+		return nil
+	}
+	return nil
+}
+
+func (app *App) Stop(ctx context.Context) error {
+	app.log.Info("Application stopping")
+	return nil
+}

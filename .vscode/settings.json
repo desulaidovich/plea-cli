@@ -1,0 +1,63 @@
+{
+  "go.useLanguageServer": true,
+  "go.lintTool": "golangci-lint",
+  "go.lintOnSave": "package",
+  "go.vetOnSave": "package",
+  "go.formatTool": "gofmt",
+  "go.toolsManagement.autoUpdate": true,
+  "go.testFlags": ["-v", "-race", "-count=1"],
+  "go.coverOnSave": false,
+  "go.coverOnTestPackage": false,
+  "gopls": {
+    "ui.completion.usePlaceholders": true,
+    "ui.diagnostic.staticcheck": true,
+    "ui.inlayhint.assignVariableTypes": true,
+    "ui.inlayhint.compositeLiteralFields": true,
+    "ui.inlayhint.compositeLiteralTypes": true,
+    "ui.inlayhint.constantValues": true,
+    "ui.inlayhint.functionTypeParameters": true,
+    "ui.inlayhint.parameterNames": true,
+    "ui.inlayhint.rangeVariableTypes": true,
+    "analyses": {
+      "unusedparams": true,
+      "shadow": true,
+      "nilness": true,
+      "unusedwrite": true,
+      "useany": true
+    }
+  },
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  },
+  "editor.inlayHints.enabled": "on",
+  "editor.rulers": [120],
+  "editor.tabSize": 4,
+  "editor.insertSpaces": false,
+  "editor.wordWrap": "off",
+  "editor.minimap.enabled": false,
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+  "editor.suggest.insertMode": "replace",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.exclude": {
+    "**/.git": true,
+    "**/vendor": true
+  },
+  "[go]": {
+    "editor.defaultFormatter": "golang.go",
+    "editor.formatOnSave": true,
+    "editor.insertSpaces": false
+  },
+  "[go.mod]": {
+    "editor.defaultFormatter": "golang.go",
+    "editor.formatOnSave": true
+  },
+  "go.testExplorer.enable": true,
+  "search.exclude": {
+    "**/vendor": true,
+    "**/*.pb.go": true,
+    "**/mock/*.go": false
+  }
+}

@@ -1,0 +1,107 @@
+package runner
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"os"
+	"os/signal"
+	"sync/atomic"
+	"syscall"
+	"time"
+
+	"golang.org/x/sync/errgroup"
+)
+
+type Handler interface {
+	Start(context.Context) error
+	Stop(context.Context) error
+}
+
+type Runner struct {
+	handler     Handler
+	signals     []os.Signal
+	stopTimeout time.Duration
+	once        atomic.Bool
+}
+type Option func(*Runner) error
+
+func WithHandler(handler Handler) Option {
+	return func(r *Runner) error {
+		if handler == nil {
+			return errors.New("runner: handler cannot be nil")
+		}
+		r.handler = handler
+		return nil
+	}
+}
+
+func WithSignals(signals ...os.Signal) Option {
+	return func(r *Runner) error {
+		r.signals = signals
+		return nil
+	}
+}
+
+func WithStopTimeout(timeout time.Duration) Option {
+	return func(r *Runner) error {
+		r.stopTimeout = timeout
+		return nil
+	}
+}
+
+func New(opts ...Option) (*Runner, error) {
+	r := &Runner{
+		signals: []os.Signal{os.Interrupt, syscall.SIGTERM},
+	}
+	for _, opt := range opts {
+		if err := opt(r); err != nil {
+			return nil, err
+		}
+	}
+	if r.handler == nil {
+		return nil, errors.New("runner: handler is required")
+	}
+	return r, nil
+}
+
+func (r *Runner) Run(ctx context.Context) error {
+	if !r.once.CompareAndSwap(false, true) {
+		return errors.New("runner: run already called")
+	}
+
+	ctx, cancel := signal.NotifyContext(ctx, r.signals...)
+	defer cancel()
+
+	g, ctx := errgroup.WithContext(ctx)
+
+	g.Go(func() (err error) {
+		defer func() {
+			if p := recover(); p != nil {
+				err = fmt.Errorf("runner: panic in Start: %v", p)
+				cancel()
+			}
+		}()
+		return r.handler.Start(ctx)
+	})
+
+	g.Go(func() (err error) {
+		defer func() {
+			if p := recover(); p != nil {
+				err = fmt.Errorf("runner: panic in Stop: %v", p)
+				cancel()
+			}
+		}()
+		<-ctx.Done()
+
+		stopCtx := ctx
+		if r.stopTimeout > 0 {
+			var stopCancel context.CancelFunc
+			stopCtx, stopCancel = context.WithTimeout(context.Background(), r.stopTimeout)
+			defer stopCancel()
+		}
+		return r.handler.Stop(stopCtx)
+	})
+
+	return g.Wait()
+}

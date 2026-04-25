@@ -1,0 +1,53 @@
+package main
+
+import (
+	"context"
+	"syscall"
+	"time"
+
+	"{{.Module}}/internal/app"
+	"{{.Module}}/pkg/log"
+	"{{.Module}}/pkg/runner"
+)
+
+// Build-time variables, injected via -ldflags.
+var (
+	version = "dev"
+	build   = "unknown"
+)
+
+func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	logger, err := log.New(
+		log.WithLevel("{{.LogLevel}}"),
+		log.WithFormat("json"),
+		log.WithTimeFormat(time.RFC3339),
+	)
+	if err != nil {
+		panic("failed to create logger: " + err.Error())
+	}
+
+	a, err := app.New(
+		app.WithAppName("{{.ProjectName}}"),
+		app.WithVersion(version, build),
+		app.WithLogger(logger),
+	)
+	if err != nil {
+		panic("failed to create application: " + err.Error())
+	}
+
+	r, err := runner.New(
+		runner.WithHandler(a),
+		runner.WithSignals(syscall.SIGINT, syscall.SIGTERM),
+		runner.WithStopTimeout(5*time.Second),
+	)
+	if err != nil {
+		panic("failed to create runner: " + err.Error())
+	}
+
+	if err := r.Run(ctx); err != nil {
+		panic("runner exited with error: " + err.Error())
+	}
+}
