@@ -42,8 +42,8 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"plea-cli/internal/logger"
-	"plea-cli/internal/shell"
+	"github.com/desulaidovich/plea-cli/internal/logger"
+	"github.com/desulaidovich/plea-cli/internal/shell"
 )
 
 //go:embed templates

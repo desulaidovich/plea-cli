@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
-	"plea-cli/internal/logger"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/desulaidovich/plea-cli/internal/logger"
 )
 
 func TestGenerator_Do(t *testing.T) {

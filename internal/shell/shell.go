@@ -24,7 +24,8 @@ package shell
 
 import (
 	"os/exec"
-	"plea-cli/internal/logger"
+
+	"github.com/desulaidovich/plea-cli/internal/logger"
 )
 
 func Exec(dir string, verbose bool, name string, logger *logger.Logger, args ...string) error {

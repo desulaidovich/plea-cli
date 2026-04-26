@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"plea-cli/internal/generator"
-	"plea-cli/internal/logger"
 
 	"github.com/urfave/cli/v2"
+
+	"github.com/desulaidovich/plea-cli/internal/generator"
+	"github.com/desulaidovich/plea-cli/internal/logger"
 )
 
 func Run() error {
 	app := &cli.App{
-		Name:        "plea-cli",
+		Name:        "github.com/desulaidovich/plea-cli",
 		Usage:       "Template generator for Go projects",
 		Description: "Create new projects from ready-to-use templates",
 		Version:     "dev",

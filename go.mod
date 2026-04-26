@@ -1,4 +1,4 @@
-module plea-cli
+module github.com/desulaidovich/plea-cli
 
 go 1.24.2
 

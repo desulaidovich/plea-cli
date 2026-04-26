@@ -1,6 +1,6 @@
 package main
 
-import "plea-cli/cmd"
+import "github.com/desulaidovich/plea-cli/cmd"
 
 func main() {
 	if err := cmd.Run(); err != nil {

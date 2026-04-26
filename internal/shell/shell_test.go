@@ -5,8 +5,9 @@ import (
 	"errors"
 	"log"
 	"os/exec"
-	"plea-cli/internal/logger"
 	"testing"
+
+	"github.com/desulaidovich/plea-cli/internal/logger"
 )
 
 func TestExec(t *testing.T) {
