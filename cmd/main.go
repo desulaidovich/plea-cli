@@ -13,7 +13,7 @@ import (
 
 func Run() error {
 	app := &cli.App{
-		Name:        "github.com/desulaidovich/plea-cli",
+		Name:        "plea-cli",
 		Usage:       "Template generator for Go projects",
 		Description: "Create new projects from ready-to-use templates",
 		Version:     "dev",

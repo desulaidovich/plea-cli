@@ -5,6 +5,12 @@ CLI-инструмент для генерации Go-проектов из го
 ## Установка
 
 ```bash
+go install github.com/desulaidovich/plea-cli@v0.0.1-dev
+```
+
+## Сборка
+
+```bash
 git clone https://github.com/antonstazkin/plea-cli
 cd plea-cli
 go build -o plea-cli ./cmd/main.go
