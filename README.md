@@ -37,12 +37,12 @@ plea-cli new \
   --verbose
 ```
 
-Проект будет создан по пути `./projects/generated/my-service/`.
+Проект будет создан по пути `./projects/my-service/`.
 
 ## Структура генерируемого проекта
 
 ```
-<output>/generated/<name>/
+<output>/<name>/
 ├── cmd/
 │   └── app/
 │       └── main.go          # Точка входа

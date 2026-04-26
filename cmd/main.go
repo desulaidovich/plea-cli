@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"plea-cli/internal/generator"
+	"plea-cli/internal/logger"
 
 	"github.com/urfave/cli/v2"
 )
@@ -24,9 +25,8 @@ func main() {
 		Copyright: "(c) 2026",
 		Commands: []*cli.Command{
 			{
-				Name:    "new",
-				Aliases: []string{"n"},
-				Usage:   "Create a new project from template",
+				Name:  "new",
+				Usage: "Create a new project from template",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:     "name",
@@ -79,7 +79,8 @@ func main() {
 					outputDir := ctx.String("output")
 					logLevel := ctx.String("log-level")
 					verbose := ctx.Bool("verbose")
-					return generator.New(projectName, moduleName, outputDir, logLevel, verbose).Do()
+					loggen := logger.New(os.Stdout, logger.Debug, log.Ltime)
+					return generator.New(projectName, moduleName, outputDir, logLevel, verbose, loggen).Do()
 				},
 			},
 		},

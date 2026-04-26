@@ -1,3 +1,37 @@
+// Package generator provides functionality for scaffolding new Go service projects.
+//
+// It creates a standard project structure with sensible defaults including:
+//   - Standard Go project layout (cmd/, internal/, pkg/)
+//   - Pre-configured logging package with configurable log levels
+//   - A runner package for managing application lifecycle
+//   - Makefile with common development tasks
+//   - Go module initialization with proper module path
+//
+// The generator uses embedded templates to produce consistent, production-ready
+// boilerplate code. It automatically runs 'go mod init' and 'go mod tidy' to
+// ensure a valid Go module is created.
+//
+// Example usage:
+//
+//	log := logger.New(os.Stdout, true)
+//	gen := generator.New(
+//	    "my-service",
+//	    "github.com/user/my-service",
+//	    "./output",
+//	    "info",
+//	    true,
+//	    log,
+//	)
+//	if err := gen.Do(); err != nil {
+//	    log.Fatal(err)
+//	}
+//
+// The generated project includes:
+//   - cmd/app/main.go     - Application entry point
+//   - internal/app/app.go - Core application logic
+//   - pkg/log/log.go      - Structured logging wrapper
+//   - pkg/runner/runner.go - Graceful shutdown and signal handling
+//   - Makefile            - Build, test, and run targets
 package generator
 
 import (
@@ -28,20 +62,22 @@ type Generator struct {
 	outputDir   string
 	logLevel    string
 	verbose     bool
+	logger      *logger.Logger
 }
 
-func New(projectName, moduleName, outputDir, logLevel string, verbose bool) *Generator {
+func New(projectName, moduleName, outputDir, logLevel string, verbose bool, logger *logger.Logger) *Generator {
 	return &Generator{
 		projectName: projectName,
 		moduleName:  moduleName,
 		outputDir:   outputDir,
 		logLevel:    logLevel,
 		verbose:     verbose,
+		logger:      logger,
 	}
 }
 
 func (gen *Generator) Do() error {
-	serviceDir := gen.outputDir + "/generated/" + gen.projectName
+	serviceDir := filepath.Join(gen.outputDir, gen.projectName)
 
 	dirs := []string{
 		serviceDir,
@@ -56,11 +92,11 @@ func (gen *Generator) Do() error {
 			return fmt.Errorf("failed to create %q: %w", dir, err)
 		}
 		if gen.verbose {
-			logger.Default.Infof("Created directory: %s", dir)
+			gen.logger.Infof("Created directory: %s", dir)
 		}
 	}
 
-	if err := shell.Exec(serviceDir, gen.verbose, "go", "mod", "init", gen.moduleName); err != nil {
+	if err := shell.Exec(serviceDir, gen.verbose, "go", gen.logger, "mod", "init", gen.moduleName); err != nil {
 		return fmt.Errorf("go mod init: %w", err)
 	}
 
@@ -83,11 +119,11 @@ func (gen *Generator) Do() error {
 			return err
 		}
 		if gen.verbose {
-			logger.Default.Infof("Created file: %s", entrie.dst)
+			gen.logger.Infof("Created file: %s", entrie.dst)
 		}
 	}
 
-	if err := shell.Exec(serviceDir, gen.verbose, "go", "mod", "tidy"); err != nil {
+	if err := shell.Exec(serviceDir, gen.verbose, "go", gen.logger, "mod", "tidy"); err != nil {
 		return fmt.Errorf("go mod tidy: %w", err)
 	}
 
