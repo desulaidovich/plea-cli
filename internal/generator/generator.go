@@ -1,83 +1,58 @@
-// Package generator provides functionality for scaffolding new Go service projects.
-//
-// It creates a standard project structure with sensible defaults including:
-//   - Standard Go project layout (cmd/, internal/, pkg/)
-//   - Pre-configured logging package with configurable log levels
-//   - A runner package for managing application lifecycle
-//   - Makefile with common development tasks
-//   - Go module initialization with proper module path
-//
-// The generator uses embedded templates to produce consistent, production-ready
-// boilerplate code. It automatically runs 'go mod init' and 'go mod tidy' to
-// ensure a valid Go module is created.
+// Package generator scaffolds new Go service projects from embedded templates.
 //
 // Example usage:
 //
-//	log := logger.New(os.Stdout, true)
-//	gen := generator.New(
-//	    "my-service",
-//	    "github.com/user/my-service",
-//	    "./output",
-//	    "info",
-//	    true,
-//	    log,
-//	)
+//	gen := generator.New(manifest.Config{
+//	    Name:     "my-service",
+//	    Module:   "github.com/user/my-service",
+//	    Output:   "./output",
+//	    LogLevel: "info",
+//	    Verbose:  true,
+//	}, logger.New(os.Stdout, logger.Debug, log.Ltime))
 //	if err := gen.Do(); err != nil {
 //	    log.Fatal(err)
 //	}
 //
 // The generated project includes:
-//   - cmd/app/main.go     - Application entry point
-//   - internal/app/app.go - Core application logic
-//   - pkg/log/log.go      - Structured logging wrapper
+//   - cmd/app/main.go      - Application entry point
+//   - internal/app/app.go  - Core application logic
+//   - pkg/log/log.go       - Structured logging wrapper
 //   - pkg/runner/runner.go - Graceful shutdown and signal handling
-//   - Makefile            - Build, test, and run targets
+//   - Makefile             - Build, test, and run targets
 package generator
 
 import (
 	"embed"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"text/template"
 
 	"github.com/desulaidovich/plea-cli/internal/logger"
+	"github.com/desulaidovich/plea-cli/internal/manifest"
 	"github.com/desulaidovich/plea-cli/internal/shell"
 )
 
 //go:embed templates
 var templatesFS embed.FS
 
-type TemplateData struct {
+type templateData struct {
 	ProjectName string
 	Module      string
-	Author      string
 	LogLevel    string
 }
 
 type Generator struct {
-	projectName string
-	moduleName  string
-	outputDir   string
-	logLevel    string
-	verbose     bool
-	logger      *logger.Logger
+	cfg    manifest.Config
+	logger *logger.Logger
 }
 
-func New(projectName, moduleName, outputDir, logLevel string, verbose bool, logger *logger.Logger) *Generator {
-	return &Generator{
-		projectName: projectName,
-		moduleName:  moduleName,
-		outputDir:   outputDir,
-		logLevel:    logLevel,
-		verbose:     verbose,
-		logger:      logger,
-	}
+func New(cfg manifest.Config, logger *logger.Logger) *Generator {
+	return &Generator{cfg: cfg, logger: logger}
 }
 
 func (gen *Generator) Do() error {
-	serviceDir := filepath.Join(gen.outputDir, gen.projectName)
+	serviceDir := filepath.Join(gen.cfg.Output, gen.cfg.Name)
 
 	dirs := []string{
 		serviceDir,
@@ -91,12 +66,12 @@ func (gen *Generator) Do() error {
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			return fmt.Errorf("failed to create %q: %w", dir, err)
 		}
-		if gen.verbose {
+		if gen.cfg.Verbose {
 			gen.logger.Infof("Created directory: %s", dir)
 		}
 	}
 
-	if err := shell.Exec(serviceDir, gen.verbose, "go", gen.logger, "mod", "init", gen.moduleName); err != nil {
+	if err := shell.Exec(serviceDir, gen.cfg.Verbose, "go", gen.logger, "mod", "init", gen.cfg.Module); err != nil {
 		return fmt.Errorf("go mod init: %w", err)
 	}
 
@@ -108,57 +83,53 @@ func (gen *Generator) Do() error {
 		{"templates/Makefile.tmpl", filepath.Join(serviceDir, "Makefile")},
 	}
 
-	data := TemplateData{
-		ProjectName: gen.projectName,
-		Module:      gen.moduleName,
-		LogLevel:    gen.logLevel,
+	data := templateData{
+		ProjectName: gen.cfg.Name,
+		Module:      gen.cfg.Module,
+		LogLevel:    gen.cfg.LogLevel,
 	}
 
-	for _, entrie := range entries {
-		if err := gen.render(entrie.src, entrie.dst, data); err != nil {
+	for _, entry := range entries {
+		if err := gen.render(entry.src, entry.dst, data); err != nil {
 			return err
 		}
-		if gen.verbose {
-			gen.logger.Infof("Created file: %s", entrie.dst)
+		if gen.cfg.Verbose {
+			gen.logger.Infof("Created file: %s", entry.dst)
 		}
 	}
 
-	if err := shell.Exec(serviceDir, gen.verbose, "go", gen.logger, "mod", "tidy"); err != nil {
+	if err := shell.Exec(serviceDir, gen.cfg.Verbose, "go", gen.logger, "mod", "tidy"); err != nil {
 		return fmt.Errorf("go mod tidy: %w", err)
 	}
 
 	return nil
 }
 
-func (gen *Generator) render(src, dst string, data any) (err error) {
+func (gen *Generator) render(src, dst string, data any) error {
 	content, err := templatesFS.ReadFile(src)
 	if err != nil {
-		err = fmt.Errorf("failed to read template %q: %w", src, err)
-		return
+		return fmt.Errorf("failed to read template %q: %w", src, err)
 	}
 
 	tmpl, err := template.New(src).Parse(string(content))
 	if err != nil {
-		err = fmt.Errorf("failed to parse template %q: %w", src, err)
-		return
+		return fmt.Errorf("failed to parse template %q: %w", src, err)
 	}
 
 	f, err := os.Create(dst)
 	if err != nil {
-		err = fmt.Errorf("failed to create %q: %w", dst, err)
-		return
+		return fmt.Errorf("failed to create %q: %w", dst, err)
 	}
 
-	defer func() {
-		if errCLose := f.Close(); err != nil {
-			err = errors.Join(err, errCLose)
-		}
-	}()
+	execErr := tmpl.Execute(f, data)
+	closeErr := f.Close()
 
-	if err = tmpl.Execute(f, data); err != nil {
-		err = fmt.Errorf("failed to execute template %q: %w", src, err)
-		return
+	if execErr != nil {
+		return fmt.Errorf("failed to execute template %q: %w", src, execErr)
+	}
+	if closeErr != nil {
+		return fmt.Errorf("failed to close %q: %w", dst, closeErr)
 	}
 
-	return
+	return nil
 }

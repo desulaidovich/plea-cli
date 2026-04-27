@@ -23,6 +23,7 @@
 package shell
 
 import (
+	"fmt"
 	"os/exec"
 
 	"github.com/desulaidovich/plea-cli/internal/logger"
@@ -40,7 +41,7 @@ func Exec(dir string, verbose bool, name string, logger *logger.Logger, args ...
 	cmd.Stderr = logger.ErrWriter()
 
 	if err := cmd.Run(); err != nil {
-		return err
+		return fmt.Errorf("%s %v: %w", name, args, err)
 	}
 	return nil
 }

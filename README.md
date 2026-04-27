@@ -5,34 +5,34 @@ CLI-инструмент для генерации Go-проектов из го
 ## Установка
 
 ```bash
-go install github.com/desulaidovich/plea-cli@v0.0.1-dev
+go install github.com/desulaidovich/plea-cli@latest
 ```
 
 ## Сборка
 
 ```bash
-git clone https://github.com/antonstazkin/plea-cli
+git clone https://github.com/desulaidovich/plea-cli
 cd plea-cli
-go build -o plea-cli ./cmd/main.go
+go build -o plea-cli .
 ```
 
 ## Использование
 
+### Из флагов
+
 ```bash
-plea-cli new --name <project-name> --module <module-path> --output <output-dir>
+plea-cli new --name <project-name> --module <module-path>
 ```
 
-### Флаги
+#### Флаги
 
 | Флаг          | Псевдоним | Описание                                               | По умолчанию | Обязательный |
 | ------------- | --------- | ------------------------------------------------------ | ------------ | ------------ |
 | `--name`      | `-n`      | Название проекта                                       | —            | да           |
 | `--module`    | `-m`      | Имя модуля в `go.mod`                                  | —            | да           |
-| `--output`    | `-o`      | Директория для генерации                               | —            | да           |
+| `--output`    | `-o`      | Директория для генерации                               | `.`          | нет          |
 | `--log-level` | `-ll`     | Уровень логирования (`debug`, `info`, `warn`, `error`) | `debug`      | нет          |
 | `--verbose`   | `-v`      | Подробный вывод (директории, файлы, команды)           | `false`      | нет          |
-
-### Пример
 
 ```bash
 plea-cli new \
@@ -43,7 +43,40 @@ plea-cli new \
   --verbose
 ```
 
-Проект будет создан по пути `./projects/my-service/`.
+### Из манифеста
+
+Создайте `plea.yaml` (или `plea.yml` / `plea.json`) в корне проекта:
+
+```yaml
+name: my-app
+module: github.com/username/my-app
+output: ./projects
+log_level: info
+verbose: true
+```
+
+```json
+{
+  "name": "my-app",
+  "module": "github.com/username/my-app",
+  "output": "./projects",
+  "log_level": "info",
+  "verbose": true
+}
+```
+
+Запустите:
+
+```bash
+plea-cli manifest                      # ищет ./plea.yaml по умолчанию
+plea-cli manifest --path ./plea.json   # явный путь к файлу
+```
+
+#### Флаги
+
+| Флаг     | Псевдоним | Описание               | По умолчанию  |
+| -------- | --------- | ---------------------- | ------------- |
+| `--path` | `-p`      | Путь к файлу манифеста | `./plea.yaml` |
 
 ## Структура генерируемого проекта
 

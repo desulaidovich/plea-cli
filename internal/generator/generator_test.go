@@ -7,106 +7,63 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/desulaidovich/plea-cli/internal/logger"
+	"github.com/desulaidovich/plea-cli/internal/manifest"
 )
 
 func TestGenerator_Do(t *testing.T) {
-	type args struct {
-		projectName string
-		moduleName  string
-		outputDir   string
-		logLevel    string
-		verbose     bool
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		{
-			name: "temporary directory",
-			args: args{
-				projectName: "test-project",
-				moduleName:  "github.com/test/test-project",
-				outputDir:   "test",
-				logLevel:    "debug",
-				verbose:     false,
-			},
-		},
-	}
+	t.Run("creates project structure", func(t *testing.T) {
+		tempDir := t.TempDir()
+		cfg := manifest.Config{
+			Name:     "test-project",
+			Module:   "github.com/test/test-project",
+			Output:   tempDir,
+			LogLevel: "debug",
+			Verbose:  false,
+		}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tempDir, err := os.MkdirTemp("", tt.args.outputDir)
-			assert.NoError(t, err)
-			defer func() {
-				err = os.RemoveAll(tempDir)
-				assert.NoError(t, err)
-			}()
+		err := New(cfg, logger.New(&bytes.Buffer{}, logger.Debug, 0)).Do()
+		require.NoError(t, err)
 
-			var buff bytes.Buffer
+		expectedDirs := []string{
+			filepath.Join(tempDir, cfg.Name),
+			filepath.Join(tempDir, cfg.Name, "cmd", "app"),
+			filepath.Join(tempDir, cfg.Name, "internal", "app"),
+			filepath.Join(tempDir, cfg.Name, "pkg", "log"),
+			filepath.Join(tempDir, cfg.Name, "pkg", "runner"),
+		}
+		for _, dir := range expectedDirs {
+			_, err = os.Stat(dir)
+			assert.NoError(t, err, "directory should exist: %s", dir)
+		}
 
-			gen := New(
-				tt.args.projectName,
-				tt.args.moduleName,
-				tempDir,
-				tt.args.logLevel,
-				tt.args.verbose,
-				logger.New(&buff, logger.Debug, 0),
-			)
+		expectedFiles := []string{
+			"internal/app/app.go",
+			"cmd/app/main.go",
+			"pkg/runner/runner.go",
+			"pkg/log/log.go",
+			"Makefile",
+			"go.mod",
+		}
+		for _, file := range expectedFiles {
+			_, err = os.Stat(filepath.Join(tempDir, cfg.Name, file))
+			assert.NoError(t, err, "file should exist: %s", file)
+		}
+	})
 
-			err = gen.Do()
-			assert.NoError(t, err)
+	t.Run("fails when project already exists", func(t *testing.T) {
+		tempDir := t.TempDir()
+		cfg := manifest.Config{
+			Name:   "test-project",
+			Module: "github.com/test/test-project",
+			Output: tempDir,
+		}
+		gen := New(cfg, logger.New(&bytes.Buffer{}, logger.Debug, 0))
 
-			expectedDirs := []string{
-				filepath.Join(tempDir, tt.args.projectName),
-				filepath.Join(tempDir, tt.args.projectName, "cmd", "app"),
-				filepath.Join(tempDir, tt.args.projectName, "internal", "app"),
-				filepath.Join(tempDir, tt.args.projectName, "pkg", "log"),
-				filepath.Join(tempDir, tt.args.projectName, "pkg", "runner"),
-			}
-
-			for _, dir := range expectedDirs {
-				_, err = os.Stat(dir)
-				assert.NoError(t, err, "Directory should exist: %s", dir)
-			}
-
-			expectedFiles := []string{
-				"internal/app/app.go",
-				"cmd/app/main.go",
-				"pkg/runner/runner.go",
-				"pkg/log/log.go",
-				"Makefile",
-				"go.mod",
-			}
-
-			for _, file := range expectedFiles {
-				filePath := filepath.Join(tempDir, tt.args.projectName, file)
-				_, err = os.Stat(filePath)
-				assert.NoError(t, err, "File should exist: %s", file)
-			}
-		})
-	}
-}
-func TestGenerator_render(t *testing.T) {
-	type args struct {
-		src  string
-		dst  string
-		data any
-	}
-	tests := []struct {
-		name    string
-		gen     *Generator
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.gen.render(tt.args.src, tt.args.dst, tt.args.data); (err != nil) != tt.wantErr {
-				t.Errorf("Generator.render() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
+		require.NoError(t, gen.Do())
+		err := gen.Do()
+		assert.Error(t, err)
+	})
 }
