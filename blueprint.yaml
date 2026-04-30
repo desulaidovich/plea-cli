@@ -1,0 +1,14 @@
+go: "1.24"
+module: "github.com/{{repositoryPath}}/{{serviceName}}"
+dirs:
+  cmd:
+    app:
+      - "main.go"
+  internal:
+    app:
+      - "app.go"
+  pkg:
+    runner:
+      - "runner.go"
+    log:
+      - "log.go"

@@ -1,5 +1,0 @@
-name: my-app
-module: github.com/user/my-app
-output: ./bin/app
-log_level: info
-verbose: true

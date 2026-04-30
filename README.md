@@ -18,70 +18,35 @@ go build -o plea-cli .
 
 ## Использование
 
-### Из флагов
-
 ```bash
-plea-cli new --name <project-name> --module <module-path>
+plea-cli new --name <project-name> --repo <github-username-or-org>
+
+# пример
+plea-cli new --name my-service --repo desulaidovich
 ```
 
-#### Флаги
+### Флаги
 
-| Флаг          | Псевдоним | Описание                                               | По умолчанию | Обязательный |
-| ------------- | --------- | ------------------------------------------------------ | ------------ | ------------ |
-| `--name`      | `-n`      | Название проекта                                       | —            | да           |
-| `--module`    | `-m`      | Имя модуля в `go.mod`                                  | —            | да           |
-| `--output`    | `-o`      | Директория для генерации                               | `.`          | нет          |
-| `--log-level` | `-ll`     | Уровень логирования (`debug`, `info`, `warn`, `error`) | `debug`      | нет          |
-| `--verbose`   | `-v`      | Подробный вывод (директории, файлы, команды)           | `false`      | нет          |
+| Флаг        | Псевдоним | Описание                                     | Обязательный |
+| ----------- | --------- | -------------------------------------------- | ------------ |
+| `--name`    | `-n`      | Название проекта                             | да           |
+| `--repo`    | `-r`      | GitHub username или организация              | нет          |
+| `--output`  | `-o`      | Директория для генерации                     | нет          |
+| `--verbose` | `-v`      | Подробный вывод (созданные файлы)            | нет          |
 
-```bash
-plea-cli new \
-  --name my-service \
-  --module github.com/username/my-service \
-  --output ./projects \
-  --log-level info \
-  --verbose
+После генерации инструмент выведет следующие шаги:
+
 ```
-
-### Из манифеста
-
-Создайте `plea.yaml` (или `plea.yml` / `plea.json`) в корне проекта:
-
-```yaml
-name: my-app
-module: github.com/username/my-app
-output: ./projects
-log_level: info
-verbose: true
+next steps:
+  cd <project-name>
+  go mod init github.com/<repo>/<project-name>
+  go mod tidy
 ```
-
-```json
-{
-  "name": "my-app",
-  "module": "github.com/username/my-app",
-  "output": "./projects",
-  "log_level": "info",
-  "verbose": true
-}
-```
-
-Запустите:
-
-```bash
-plea-cli manifest                      # ищет ./plea.yaml по умолчанию
-plea-cli manifest --path ./plea.json   # явный путь к файлу
-```
-
-#### Флаги
-
-| Флаг     | Псевдоним | Описание               | По умолчанию  |
-| -------- | --------- | ---------------------- | ------------- |
-| `--path` | `-p`      | Путь к файлу манифеста | `./plea.yaml` |
 
 ## Структура генерируемого проекта
 
 ```
-<output>/<name>/
+<name>/
 ├── cmd/
 │   └── app/
 │       └── main.go          # Точка входа
@@ -93,7 +58,6 @@ plea-cli manifest --path ./plea.json   # явный путь к файлу
 │   │   └── log.go           # Структурированное логирование (slog)
 │   └── runner/
 │       └── runner.go        # Graceful shutdown
-├── go.mod
 └── Makefile
 ```
 
@@ -124,7 +88,3 @@ plea-cli manifest --path ./plea.json   # явный путь к файлу
 make build   # сборка бинаря в bin/<project-name> с ldflags
 make run     # go run ./cmd/app (цель по умолчанию)
 ```
-
-## Требования
-
-- Go 1.24+

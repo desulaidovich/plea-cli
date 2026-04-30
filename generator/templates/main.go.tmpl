@@ -5,9 +5,9 @@ import (
 	"syscall"
 	"time"
 
-	"{{.Module}}/internal/app"
-	"{{.Module}}/pkg/log"
-	"{{.Module}}/pkg/runner"
+	"{{.ModulePath}}/internal/app"
+	"{{.ModulePath}}/pkg/log"
+	"{{.ModulePath}}/pkg/runner"
 )
 
 // Build-time variables, injected via -ldflags.
@@ -21,7 +21,7 @@ func main() {
 	defer cancel()
 
 	logger, err := log.New(
-		log.WithLevel("{{.LogLevel}}"),
+		log.WithLevel("debug"),
 		log.WithFormat("json"),
 		log.WithTimeFormat(time.RFC3339),
 	)
