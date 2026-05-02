@@ -1,4 +1,8 @@
-# plea-cli
+<p align="center">
+  <img src="logo.svg" width="600" alt="plea-cli logo"/>
+</p>
+
+~# plea-cli
 
 CLI-инструмент для генерации Go-проектов из готового шаблона.
 
@@ -22,7 +26,7 @@ go build -o plea-cli .
 plea-cli new --name <project-name> --repo <github-username-or-org>
 
 # пример
-plea-cli new --name my-service --repo desulaidovich
+plea-cli new --name service --repo desulaidovich
 ```
 
 ### Флаги

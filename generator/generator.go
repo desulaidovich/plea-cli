@@ -168,4 +168,3 @@ func (gen *Generator) render(src, dst string, data any) error {
 
 	return nil
 }
-

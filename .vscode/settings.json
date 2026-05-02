@@ -5,19 +5,13 @@
   "go.vetOnSave": "package",
   "go.formatTool": "gofmt",
   "go.toolsManagement.autoUpdate": true,
-  "go.testFlags": ["-v"],
+  "go.testFlags": [
+    "-v"
+  ],
   "go.coverOnSave": false,
   "go.coverOnTestPackage": false,
   "gopls": {
-    "ui.completion.usePlaceholders": true,
     "ui.diagnostic.staticcheck": true,
-    "ui.inlayhint.assignVariableTypes": true,
-    "ui.inlayhint.compositeLiteralFields": true,
-    "ui.inlayhint.compositeLiteralTypes": true,
-    "ui.inlayhint.constantValues": true,
-    "ui.inlayhint.functionTypeParameters": true,
-    "ui.inlayhint.parameterNames": true,
-    "ui.inlayhint.rangeVariableTypes": true,
     "analyses": {
       "unusedparams": true,
       "shadow": true,
@@ -31,7 +25,9 @@
     "source.organizeImports": "explicit"
   },
   "editor.inlayHints.enabled": "on",
-  "editor.rulers": [120],
+  "editor.rulers": [
+    120
+  ],
   "editor.tabSize": 4,
   "editor.insertSpaces": false,
   "editor.wordWrap": "off",
