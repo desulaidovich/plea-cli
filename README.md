@@ -2,7 +2,7 @@
   <img src="logo.svg" width="600" alt="plea-cli logo"/>
 </p>
 
-~# plea-cli
+# plea-cli
 
 CLI-инструмент для генерации Go-проектов из готового шаблона.
 
